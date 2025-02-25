@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  app:
+    image: golang:1.24  # Use official Golang image
+    container_name: go_app
+    working_dir: /app  # Set working directory inside container
+    volumes:
+      - .:/app  # Mount current directory to /app
+    # run bash
+    # command: bash
+    stdin_open: true  # Keep STDIN open for interactive mode
+    tty: true          # Allocate a TTY for shell access
+    # ports:
+    #   - "8080:8080"
+    environment:
+      - GO_ENV=development
