@@ -25,7 +25,7 @@ class TestTF05(unittest.TestCase):
 
     def test_remove_stop_words(self):
         tf_05.words = ['this', 'is', 'a', 'test', 'this', 'test', 'is', 'only', 'a', 'test']
-        tf_05.remove_stop_words()
+        tf_05.remove_stop_words("../../example/stop_words.txt")
         self.assertEqual(['test', 'test', 'test'], tf_05.words)
 
     def test_frequencies(self):

@@ -43,6 +43,7 @@ def remove_stop_words(file_path):
     with open(file_path) as f:
         stop_words = f.read().split(',')
     # add single-letter words
+    print(stop_words)
     stop_words.extend(list(string.ascii_lowercase))
     indexes = []
     for i in range(len(words)):
@@ -52,12 +53,17 @@ def remove_stop_words(file_path):
         words.pop(i)
         
 def remove_stop_words(stop_words_file):
-    def actual_removal(words_list):
-        with open(stop_words_file) as f:
-            stop_words = f.read().split(',')
-        stop_words.extend(list(string.ascii_lowercase))
-        return [w for w in words_list if w not in stop_words]
-    return actual_removal
+    global words
+    with open(stop_words_file) as f:
+        stop_words = f.read().split(',')
+    # add single-letter words
+    stop_words.extend(list(string.ascii_lowercase))
+    indexes = []
+    for i in range(len(words)):
+        if words[i] in stop_words:
+            indexes.append(i)
+    for i in reversed(indexes):
+        words.pop(i)
 
 def frequencies():
     """
