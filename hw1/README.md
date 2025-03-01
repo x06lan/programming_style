@@ -13,3 +13,24 @@ Follow the folder structure below and change the student ID and the name to your
     > In the example program, the name of the file containing the list of stop words is hard-coded (line #36). Modify the program so that the name of the stop words file is given as the second argument in the command line. You must observe the following additional stylistic constraints: (1) no function can have more than 1 argument, and (2) the only function that can be changed is remove_stop_words; it’s ok to change the call chain in the main block in order to reflect the changes in remove_stop_words.
 2. (30%) Show with unit testing for the functions in the Cookbook style that are **not idempotent** and describe the reason in the comment.
 3. (40%) Rewrite the Pipeline style in Go, including unit tests.
+
+
+## How to run
+### 1
+```
+cd hw1/1
+python tf_05.py
+python tf_05_test.py
+```
+### 2
+```
+cd hw1/2
+python tf_05.py
+python tf_05_test.py
+```
+### 3
+```
+cd hw1/3
+go run main.py
+go test
+```

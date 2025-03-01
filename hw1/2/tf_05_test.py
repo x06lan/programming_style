@@ -14,9 +14,11 @@ class TestTF05(unittest.TestCase):
 
         tf_05.read_file(path_to_file)
         result1 = tf_05.data
-        ans= ['w', 'i', 't', 'h', ' ', 't', 'h', 'i', 's', ' ', 'e', 'B', 'o', 'o', 'k', ' ', 'o', 'r', ' ', 'o', 'n', 'l', 'i', 'n', 'e', ' ', 'a', 't', ' ', 'w', 'w', 'w', '.', 'g', 'u', 't', 'e', 'n', 'b', 'e', 'r', 'g', '.', 'o', 'r', 'g', '\n', 's', 'o', 'm', 'e', 't', 'h', 'i', 'n', 'g']
 
-        self.assertEqual(ans,result1)
+        tf_05.read_file(path_to_file)
+        result2 = tf_05.data
+
+        self.assertEqual(result1 , result2)
 
     def test_filter_chars_and_normalize(self):
         sentence = "This is a test. This test is only a test."
