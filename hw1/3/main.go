@@ -4,23 +4,21 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"unicode"
 )
 
-var data []rune
-var words []string
-var freqs map[string]int
-var sortedFreqs []struct {
+type WordFrequency struct {
 	Word  string
 	Count int
 }
 
-func readFile(filePath string) {
+func readFile(filePath string) string {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
-		return
+		os.Exit(1)
 	}
 	defer file.Close()
 
@@ -29,80 +27,69 @@ func readFile(filePath string) {
 	for scanner.Scan() {
 		content.WriteString(scanner.Text() + " ")
 	}
-	data = []rune(content.String())
+	return content.String()
 }
 
-func FilterCharsAndNormalize() {
-	var filtered []rune
-	for _, r := range data {
+func filterCharsAndNormalize(text string) string {
+	var filtered strings.Builder
+	for _, r := range text {
 		if unicode.IsLetter(r) || unicode.IsNumber(r) || unicode.IsSpace(r) {
-			filtered = append(filtered, unicode.ToLower(r))
+			filtered.WriteRune(unicode.ToLower(r))
 		} else {
-			filtered = append(filtered, ' ')
+			filtered.WriteRune(' ')
 		}
 	}
-	data = filtered
-}
-func scan() {
-	words = strings.Fields(string(data))
+	return filtered.String()
 }
 
-func removeStopWords(stopWordsFile string) {
+func tokenize(text string) []string {
+	return strings.Fields(text)
+}
+
+func removeStopWords(words []string, stopWordsFile string) []string {
 	file, err := os.Open(stopWordsFile)
 	if err != nil {
 		fmt.Println("Error opening stop words file:", err)
+		os.Exit(1)
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	scanner.Scan()
 	stopWordsList := strings.Split(scanner.Text(), ",")
-	stopWords := make(map[string]bool)
+	stopWords := make(map[string]struct{})
 	for _, word := range stopWordsList {
-		stopWords[word] = true
+		stopWords[word] = struct{}{}
 	}
 
-	filtered := []string{}
+	var filtered []string
 	for _, word := range words {
 		if _, found := stopWords[word]; !found {
 			filtered = append(filtered, word)
 		}
 	}
-	words = filtered
+	return filtered
 }
 
-func frequencies() {
-	freqs_buff := make(map[string]int)
+func computeFrequencies(words []string) map[string]int {
+	freqs := make(map[string]int)
 	for _, word := range words {
-		freqs_buff[word]++
+		freqs[word]++
 	}
-	// save freqs to global variable
-	freqs = freqs_buff
-
+	return freqs
 }
 
-func sortFrequencies() {
-	sortedFreqs_buff := make([]struct {
-		Word  string
-		Count int
-	}, 0)
-	// iter freq hash map
+func sortFrequencies(freqs map[string]int) []WordFrequency {
+	sortedFreqs := make([]WordFrequency, 0, len(freqs))
 	for word, count := range freqs {
-		sortedFreqs_buff = append(sortedFreqs_buff, struct {
-			Word  string
-			Count int
-		}{word, count})
+		sortedFreqs = append(sortedFreqs, WordFrequency{word, count})
 	}
-	// sort
-	for i := 0; i < len(sortedFreqs_buff); i++ {
-		for j := i + 1; j < len(sortedFreqs_buff); j++ {
-			if sortedFreqs_buff[i].Count < sortedFreqs_buff[j].Count {
-				sortedFreqs_buff[i], sortedFreqs_buff[j] = sortedFreqs_buff[j], sortedFreqs_buff[i]
-			}
-		}
-	}
-	sortedFreqs = sortedFreqs_buff
 
+	sort.Slice(sortedFreqs, func(i, j int) bool {
+		return sortedFreqs[i].Count > sortedFreqs[j].Count
+	})
+
+	return sortedFreqs
 }
 
 func main() {
@@ -114,14 +101,9 @@ func main() {
 	textFile := os.Args[1]
 	stopWordsFile := os.Args[2]
 
-	readFile(textFile)
-	FilterCharsAndNormalize()
-	scan()
-	removeStopWords(stopWordsFile)
-	frequencies()
-	sortFrequencies()
+	sortedFrequencies := sortFrequencies(computeFrequencies(removeStopWords(tokenize(filterCharsAndNormalize(readFile(textFile))), stopWordsFile)))
 
-	for _, item := range sortedFreqs[:25] {
+	for _, item := range sortedFrequencies[:25] {
 		fmt.Println(item.Word, "-", item.Count)
 	}
 }

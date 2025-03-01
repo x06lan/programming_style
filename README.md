@@ -77,3 +77,9 @@ In the example program, the name of the file containing the list of stop words i
 2. (30%) Show with unit testing for the functions in the Cookbook style that are **not idempotent**.
 
 3. (40%) Rewrite the Pipeline style in Go, including unit tests.
+
+
+## How to run it
+```
+git submodule init 
+```
