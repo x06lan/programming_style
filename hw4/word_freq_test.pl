@@ -12,8 +12,8 @@ test(scan) :-
     assertion(Words == ["this", "is", "a", "test", "only", "a", "test"]).
 
 test(remove_stop_words) :-
-    remove_stop_words(["this","is","a","test","only","a","test"], ["a","is","the"], Result),
-    assertion(Result == ["this", "test", "only", "test"]).
+    remove_stop_words(["this","is","a","test","only","a","test"], ["a","is","this"], Result),
+    assertion(Result == ["test", "only", "test"]).
 
 test(frequencies) :-
     frequencies(["test", "only", "test"], Freq),
@@ -23,14 +23,11 @@ test(sorted) :-
     sorted(["only"-1, "test"-2], Sorted),
     assertion(Sorted == ["test"-2, "only"-1]).
 
-test(read_stop_words, [setup(open('tmp_stop_words.txt', write, S)), cleanup(delete_file('tmp_stop_words.txt'))]) :-
-    write(S, "a,is,the"), close(S),
+test(read_stop_words) :-
     read_stop_words('tmp_stop_words.txt', StopWords),
-    assertion(StopWords==["a","is","the"]).
+    assertion(StopWords==["a","is","this"]).
 
-test(word_frequencies_output, [setup((open('input.txt', write, S1), write(S1, "This is a test, only a test."), close(S1),
-                                      open('tmp_stop_words.txt', write, S2), write(S2, "a,is,the"), close(S2))),
-                               cleanup((delete_file('input.txt'), delete_file('tmp_stop_words.txt')))]) :-
+test(word_frequencies_output) :-
     once(word_frequencies('input.txt', 'tmp_stop_words.txt')).
 
 :- end_tests(word_freq).
