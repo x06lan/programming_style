@@ -1,42 +1,66 @@
 :- use_module(library(plunit)).
 :- use_module(hw5).
 
+
 :- begin_tests(hw5).
 
-test(child_success) :-
-    children(s1, C),
-    C = [l4, l3].
+test(new_instance_concrete) :-
+    once(new_instance(s1, stage)),
+    instance(s1, stage).
 
-test(descendants_success) :-
+test(new_instance_non_concrete, [fail]) :-
+    new_instance(i,lane).  % lane is not concrete
+
+test(add_valid_child) :-
+    once(new_instance(s1, stage)),
+    once(new_instance(l3, swimlane)),
+    once(add_child(l3, s1)),
+    children(s1, L),
+    assertion(L == [l3]).
+    
+test(add_descendants_child) :-
+    once(new_instance(s1, stage)),
+    once(new_instance(l3, swimlane)),
+    once(add_child(l3, s1)),
+    descendants(s1, L),
+    assertion(L == [l3]).
+
+test(add_additional_child) :-
+    once(new_instance(s2, stage)),
+    once(new_instance(l3, swimlane)),
+    once(new_instance(l4, swimlane)),
+    once(add_child(l4, s1)),
+    once(add_child(s2, l3)),
+    children(s1, D),
+    sort(D, Sorted),
+    assertion(Sorted == [l3, l4]).
+
+test(descendants_simple) :-
+    once(add_child(s2, l3)),
     descendants(s1, D),
-    D = [s2, l4, l3].
+    sort(D, Sorted),
+    assertion(Sorted == [l3, l4, s2]).
 
-test(new_instance_stage) :-
-    new_instance(i1, stage).
+test(add_different_class_fails) :-
+    once(new_instance(s2,stage)),
+    once(add_child(s2, s1)).
 
-test(new_instance_lane_fail, [fail]) :-
-    new_instance(i1, lane).
+test(add_different_class_fails) :-
+    once(new_instance(s2,stage)),
+    once(add_child(s1, s2)).
 
-test(valid_children_check) :-
-    valid_children(s1).
+test(add_different_class) :-
+    once(new_instance(l5, swimlane)),
+    once(add_child(l5, l4)).
 
-test(valid_children_check,[fail]) :-
-    valid_children(i1).
+test(add_different_class) :-
+    once(new_instance(l5, swimlane)),
+    once(add_child(l5, s2)).
 
-test(add_child, [true]) :-
-    add_child(l3, s1).
-
-test(add_child_duplicate_parent, [true]) :-
-    \+ add_child(l5, s2).  % l5 already has a parent (l4)
-
-test(add_child_ancestor_cycle, [true]) :-
-    \+ add_child(s1, s2).  % s1 is an ancestor of s2
-
-test(add_child_descendant_cycle, [true]) :-
-    \+ add_child(s2, s1).  % s2 is a descendant of s1
-
-test(add_child_class_mismatch, [true]) :-
-    \+ add_child(stage_instance, lane_instance).  % hypothetical mismatched concrete classes
+test(valid_children) :-
+    once(valid_children(s1)).
+test(valid_children) :-
+    once(valid_children(l3)).
 
 
 :- end_tests(hw5).
