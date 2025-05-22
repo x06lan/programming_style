@@ -1,11 +1,19 @@
 % Figure 12.3  A best-first search program.
 
+:- dynamic(nodes_count/1).
+:- dynamic(node_record/1).
 
 % bestfirst( Start, Solution): Solution is a path from Start to a goal
-
 bestfirst( Start, Solution) :-
-  expand( [], l( Start, 0/0),  9999, _, yes, Solution).
-  %  Assume 9999 is greater than any f-value
+    retractall(nodes_count(_)),         % clear previous count
+    assert(nodes_count(1)),             % count start node as 1
+    retractall(node_record(_)),         % clear previously recorded nodes
+    assert(node_record(Start)),         % record start node
+    expand( [], l( Start, 0/0), 9999, _, yes, Solution),
+    nodes_count(Total),
+    write('Total number of nodes generated: '), writeln(Total),
+    findall(Node, node_record(Node), Nodes),
+    write('Total nodes generated: '), writeln(Nodes).
 
 % expand( Path, Tree, Bound, Tree1, Solved, Solution):
 %   Path is path between start node of search and subtree Tree,
@@ -14,23 +22,22 @@ bestfirst( Start, Solution) :-
 
 %  Case 1: goal leaf-node, construct a solution path
 
-expand( P, l( N, _), _, _, yes, [N|P]):-
-  goal(N).
+expand( P, l( N, _), _, _, yes, [N|P])  :-
+   goal(N).
 
 %  Case 2: leaf-node, f-value less than Bound
 %  Generate successors and expand them within Bound.
 
 expand( P, l(N,F/G), Bound, Tree1, Solved, Sol)  :-
-  F  =<  Bound,
-  (  
-    bagof( M/C, ( s(N,M,C), \+ member(M,P) ), Succ), 
-    succlist( G, Succ, Ts),               % Make subtrees Ts
-    !,                                    % Node N has successors
-    bestf( Ts, F1),                       % f-value of best successor
+  F =< Bound,
+  ( bagof( M/C, ( s(N,M,C), \+ member(M,P), record_node(M) ), Succ), 
+    !,
+    succlist( G, Succ, Ts),        % Make subtrees Ts
+    bestf( Ts, F1),
     expand( P, t(N,F1/G,Ts), Bound, Tree1, Solved, Sol)
     ;
-    Solved = never                        % N has no successors - dead end
-  ) .
+    Solved = never
+  ).
 
 %  Case 3: non-leaf, f-value less than Bound
 %  Expand the most promising subtree; depending on 
@@ -55,16 +62,16 @@ expand( _, Tree, Bound, Tree, no, _)  :-
 
 % continue( Path, Tree, Bound, NewTree, SubtreeSolved, TreeSolved, Solution)
 
-continue( _, _, _, _, yes, yes, Sol).
+continue(_, _, _, _, yes, yes, _) :- !.
 
-continue( P, t(N,F/G,[T1|Ts]), Bound, Tree1, no, Solved, Sol)  :-
-  insert( T1, Ts, NTs),
-  bestf( NTs, F1),
-  expand( P, t(N,F1/G,NTs), Bound, Tree1, Solved, Sol).
+continue(P, t(N,_/G,[T1|Ts]), Bound, Tree1, no, Solved, Sol) :- !,
+  insert(T1, Ts, NTs),
+  bestf(NTs, F1),
+  expand(P, t(N,F1/G,NTs), Bound, Tree1, Solved, Sol).
 
-continue( P, t(N,F/G,[_|Ts]), Bound, Tree1, never, Solved, Sol)  :-
-  bestf( Ts, F1),
-  expand( P, t(N,F1/G,Ts), Bound, Tree1, Solved, Sol).
+continue(P, t(N,_/G,[_|Ts]), Bound, Tree1, never, Solved, Sol) :- !,
+  bestf(Ts, F1),
+  expand(P, t(N,F1/G,Ts), Bound, Tree1, Solved, Sol).
 
 % succlist( G0, [ Node1/Cost1, ...], [ l(BestNode,BestF/G), ...]):
 %   make list of search leaves ordered by their F-values
@@ -99,7 +106,12 @@ bestf( [T|_], F)  :-    % Best f-value of a list of trees
 
 bestf( [], 9999).       % No trees: bad f-value
   
-min( X, Y, X)  :-
-  X  =<  Y, !.
+min(X, Y, X) :- X =< Y, !.
+min(_, Y, Y).
 
-min( X, Y, Y).
+% Helper predicate
+record_node(Node) :-
+   retract(nodes_count(Count)),
+   NewCount is Count + 1,
+   assert(nodes_count(NewCount)),
+   assert(node_record(Node)).
